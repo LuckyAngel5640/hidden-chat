@@ -1,7 +1,7 @@
 const express = require('express');
 const app = express();
 const mongoose = require('mongoose');
-const path = require('path')
+const path = require('path');
 const Message = require('./message');
 const session = require('express-session');
 const rateLimit = require('express-rate-limit');
@@ -24,7 +24,7 @@ function requireAdmin(req, res, next) {
 
 app.set('view engine', 'ejs');
 
-app.set('views', path.join(__dirname, '/views'))
+app.set('views', path.join(__dirname, '/views'));
 
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('mongodb connected'))
@@ -72,6 +72,20 @@ app.post("/messages", messageLimiter, (req, res) => {
   Message.create({ text: text })
     .then((newMessage) => {
       res.json({ success: true });
+
+      const botToken = process.env.BOT_TOKEN;
+      const chatId = process.env.CHAT_ID;
+
+      if (botToken && chatId) {
+        fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chat_id: chatId,
+            text: `New message:\n\n${text}`
+          })
+        }).catch(err => console.log(err));
+      }
     })
     .catch((err) => {
       res.status(500).json({ error: "Something went wrong" });
@@ -103,3 +117,4 @@ app.get("/logout", (req, res) => {
 app.listen(3000, () => {
   console.log('server started successfully');
 });
+
