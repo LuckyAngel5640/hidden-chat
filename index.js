@@ -8,7 +8,7 @@ const rateLimit = require('express-rate-limit');
 
 const messageLimiter = rateLimit({
   windowMs: 60 * 1000,
-  max: 2,
+  max: 10,
   message: { error: "Too many messages, please slow down." }
 });
 
